@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convertisseur WebP en PNG / JPG Premium</title>
+    <!-- Référencement Google -->
+    <meta name="description" content="Convertissez vos images WebP au format PNG ou JPG gratuitement et instantanément. Récupérez vos fichiers en haute définition de manière sécurisée.">
+    <meta name="keywords" content="convertisseur webp png, webp en png, webp en jpg, transformer webp, gratuit, outil en ligne">
+    <style>
+        :root {
+            --primary: #0284c7;
+            --primary-hover: #0369a1;
+            --bg: #f0f9ff;
+            --card: #ffffff;
+            --text: #1f2937;
+            --premium: #ffdd00;
+            --premium-text: #000000;
+        }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: var(--card);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            text-align: center;
+        }
+        h1 { margin-top: 0; font-size: 1.75rem; color: #0c4a6e; }
+        .options-panel {
+            background: #f3f4f6;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+        .options-title { font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; }
+        .radio-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        .radio-label { display: flex; align-items: center; gap: 0.25rem; cursor: pointer; }
+        .badge-pro { background: #6366f1; color: white; font-size: 0.7rem; padding: 0.1rem 0.4rem; border-radius: 4px; font-weight: bold; }
+        .drop-zone {
+            border: 2px dashed #7dd3fc;
+            padding: 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 1.5rem;
+            transition: border-color 0.2s;
+            display: block;
+            background: #f9fafb;
+        }
+        .drop-zone:hover { border-color: var(--primary); }
+        input[type="file"] { display: none; }
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            display: none;
+            margin-bottom: 1.5rem;
+        }
+        button:hover { background-color: var(--primary-hover); }
+        #preview { max-width: 100%; max-height: 250px; margin-bottom: 1.5rem; display: none; border-radius: 6px; }
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 100;
+        }
+        .modal-content {
+            background: white; padding: 2rem; border-radius: 12px; max-width: 400px; width: 90%; text-align: center;
+        }
+        .btn-buy { background: var(--premium); color: var(--premium-text); padding: 0.75rem; border-radius: 6px; text-decoration: none; display: block; font-weight: bold; margin: 1rem 0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .btn-close { color: #64748b; background: none; border: none; display: inline; cursor: pointer; text-decoration: underline; font-size: 0.9rem; }
+        .pro-auth { margin-top: 1rem; display: flex; gap: 0.5rem; }
+        .pro-auth input { flex: 1; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 4px; }
+        .pro-auth button { display: block; width: auto; margin: 0; padding: 0.5rem 1rem; font-size: 0.9rem; background: #374151; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .ads-container { margin-top: 2rem; border-top: 1px solid #e5e7eb; padding-top: 1.5rem; min-height: 90px; }
+        .ads-label { font-size: 0.75rem; color: #9ca3af; margin-bottom: 0.75rem; text-transform: uppercase; }
+        .ads-box-real { width: 728px; height: 90px; max-width: 100%; margin: 0 auto; display: block; }
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const fileInput = document.getElementById('fileInput');
+            const dropText = document.getElementById('dropText');
+            const preview = document.getElementById('preview');
+            const convertBtn = document.getElementById('convertBtn');
+            const proModal = document.getElementById('proModal');
+            const codeProInput = document.getElementById('codeProInput');
+            const validerCodeBtn = document.getElementById('validerCodeBtn');
+            const adsBox = document.getElementById('adsBox');
+            
+            let loadedImage = null;
+            let originalName = 'image';
+            let isProUser = false;
+
+            validerCodeBtn.addEventListener('click', () => {
+                if (codeProInput.value.trim() === "PREMIUM2026") {
+                    isProUser = true;
+                    if(adsBox) adsBox.style.display = 'none'; 
+                    alert("Félicitations ! Version Premium activée avec succès. 🎉");
+                } else {
+                    alert("Code invalide.");
+                }
+            });
+
+            window.checkPro = function(e) {
+                if (!isProUser) {
+                    e.preventDefault();
+                    document.getElementById('formatJpg').checked = true;
+                    proModal.style.display = 'flex';
+                }
+            };
+
+            window.closeModal = function() { proModal.style.display = 'none'; };
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                originalName = file.name.substring(0, file.name.lastIndexOf('.'));
+                const reader = new FileReader();
+                
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        loadedImage = img;
+                        preview.src = event.target.result;
+                        preview.style.display = 'block';
+                        convertBtn.style.display = 'block';
+                        dropText.textContent = `Fichier chargé : ${file.name}`;
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+
+            convertBtn.addEventListener('click', () => {
+                if (!loadedImage) return;
+
+                const format = document.querySelector('input[name="format"]:checked').value;
+                const canvas = document.createElement('canvas');
+                canvas.width = loadedImage.naturalWidth;
+                canvas.height = loadedImage.naturalHeight;
+                
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(loadedImage, 0, 0);
+                
+                let dataUrl = '';
+                let finalExtension = 'jpg';
+
+                if (format === 'png' && isProUser) {
+                    dataUrl = canvas.toDataURL('image/png');
+                    finalExtension = 'png';
+                } else {
+                    dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                    finalExtension = 'jpg';
+                }
+
+                const downloadLink = document.createElement('a');
+                downloadLink.href = dataUrl;
+                downloadLink.download = originalName + '.' + finalExtension;
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+            });
+        });
+    </script>
+</head>
+<body>
+
+<div class="container">
+    <h1>Convertisseur WebP en PNG / JPG</h1>
+    <p>Sélectionnez un fichier WebP pour le convertir instantanément.</p>
+    
+    <div class="options-panel">
+        <div class="options-title">Format d'exportation :</div>
+        <div class="radio-group">
+            <label class="radio-label">
+                <input type="radio" name="format" value="jpg" id="formatJpg" checked> Convertir en JPG Standard (Gratuit)
+            </label>
+            <label class="radio-label" onclick="checkPro(event)">
+                <input type="radio" name="format" value="png" id="formatPng"> Convertir en PNG Haute Définition <span class="badge-pro">PRO</span>
+            </label>
+        </div>
+    </div>
+
+    <label class="drop-zone" id="dropZone">
+        <span id="dropText">Choisir un fichier WebP</span>
+        <input type="file" id="fileInput" accept=".webp">
+    </label>
+
+    <img id="preview" alt="Aperçu de l'image">
+    <button id="convertBtn">Télécharger l'image convertie</button>
+
+    <div class="pro-auth">
+        <input type="text" id="codeProInput" placeholder="Entrez votre code Premium">
+        <button id="validerCodeBtn">Activer</button>
+    </div>
+
+    <!-- ZONE DE PUBLICITÉ SÉCURISÉE EN DIRECT -->
+    <div class="ads-container" id="adsBox">
+        <div class="ads-label">Publicité</div>
+        <div class="ads-box-real">
+            <script type="text/javascript">
+                atOptions = {
+                    'key' : '3f4f3e265c2a3aaaee43a1375a8bd50d',
+                    'format' : 'iframe',
+                    'height' : 90,
+                    'width' : 728,
+                    'params' : {}
+                };
+            </script>
